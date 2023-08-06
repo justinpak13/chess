@@ -1,16 +1,11 @@
 fn main() {
     let mut board = Board::starting_pos();
-    let test_fen = String::from("rnb1kbn1/ppp1ppp1/3q3B/3p3p/3P3P/5N1R/PPP1PPP1/RN1QKB2 b Qq - 2 5");
+    
+    let test_fen = String::from("8/q4k2/8/4q3/2K5/8/8/4B3 w K - 0 1");
+
     board.read_fen(test_fen);
-    board.print();
-    let black = vec![0x2654,0x2655, 0x2656, 0x2657, 0x2658, 0x2659];
-    let white = vec![0x265A,0x265B, 0x265C, 0x265D, 0x265E, 0x265F];
-    for j in white.iter(){
-        println!("{:?}",char::from_u32(*j).unwrap());
-    }
-    for j in black.iter(){
-        println!("{:?}",char::from_u32(*j).unwrap());
-    }
+    board.print_board();
+    board.print_fen();
 }
 
 #[derive(Clone,Debug)]
@@ -80,7 +75,7 @@ impl Board {
                     'K' => self.squares[i][counter as usize] = Piece::KingWhite,
                     'P' => self.squares[i][counter as usize] = Piece::PawnWhite,
                     _ => {
-                        for count in 0..j.to_digit(10).unwrap() - 1{
+                        for _ in 0..j.to_digit(10).unwrap() - 1{
                             self.squares[i][counter as usize] = Piece::Blank;
                             counter += 1;
                         }
@@ -107,24 +102,24 @@ impl Board {
         result
     }
 
-    fn print(&self) {
+    fn print_board(&self) {
         for rows in self.squares.clone().into_iter(){
             for columns in rows {
                 print!("|");
                 match columns {
-                    Piece::Blank => print!(" "),
-                    Piece::RookWhite => print!("R"),
-                    Piece::RookBlack => print!("r"),
-                    Piece::KnightWhite => print!("N"),
-                    Piece::KnightBlack => print!("n"),
-                    Piece::QueenWhite => print!("Q"),
-                    Piece::QueenBlack => print!("q"),
-                    Piece::KingBlack => print!("k"),
-                    Piece::KingWhite => print!("K"),
-                    Piece::PawnBlack => print!("p"),
-                    Piece::PawnWhite => print!("P"),
-                    Piece::BishopWhite => print!("B"),
-                    Piece::BishopBlack => print!("b"),
+                    Piece::Blank => print!("_"),
+                    Piece::RookWhite => print!("{}", char::from_u32(0x265C).unwrap()),
+                    Piece::RookBlack => print!("{}", char::from_u32(0x2656).unwrap()),
+                    Piece::KnightWhite => print!("{}", char::from_u32(0x265E).unwrap()),
+                    Piece::KnightBlack => print!("{}", char::from_u32(0x2658).unwrap()),
+                    Piece::QueenWhite => print!("{}", char::from_u32(0x265B).unwrap()),
+                    Piece::QueenBlack => print!("{}", char::from_u32(0x2655).unwrap()),
+                    Piece::KingBlack => print!("{}", char::from_u32(0x2654).unwrap()),
+                    Piece::KingWhite => print!("{}", char::from_u32(0x265A).unwrap()),
+                    Piece::PawnBlack => print!("{}", char::from_u32(0x2659).unwrap()),
+                    Piece::PawnWhite => print!("{}", char::from_u32(0x265F).unwrap()),
+                    Piece::BishopWhite => print!("{}", char::from_u32(0x265D).unwrap()),
+                    Piece::BishopBlack => print!("{}", char::from_u32(0x2657).unwrap()),
                     
                 }
                 
@@ -132,4 +127,16 @@ impl Board {
             println!("|");
         }
     } 
+
+    fn print_fen(&self) {
+        for row in &self.squares {
+            println!("/");
+            for column in row {
+                println!("{:?}",column)
+            }
+        };
+
+        println!("{} {} - {} {}",&self.color_move, &self.caslting_rights, &self.half_moves, &self.full_moves)
+
+    }
 }
