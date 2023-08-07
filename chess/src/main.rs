@@ -1,21 +1,24 @@
+use std::ops::Index;
+
 fn main() {
     let mut board = Board::starting_pos();
     
-    let test_fen = String::from("8/8/8/8/8/8/8/Q7 w - - 0 20");
+    //let test_fen = String::from("8/8/8/8/8/8/8/Q7 w - - 0 20");
+    let test_fen = String::from("8/8/8/8/3Q4/8/8/8 w - - 0 20");
 
     board.read_fen(test_fen);
     board.print_board();
 
-    get_legal_moves(board)
+    println!("{:?}",board.get_moves());
+
+    //test
+    //
+
+    
 }
 
-fn get_legal_moves(board: Board){
-    for i in board.squares {
-        println!("{:?}",i)
-    }
-}
 
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug,PartialEq)]
 enum Piece {
     Blank,
     KingBlack,
@@ -32,9 +35,17 @@ enum Piece {
     PawnWhite,
 }
 
+#[derive(Debug,Clone)]
+struct Square {
+    piece: Piece,
+    x_coord: char, 
+    y_coord: u8,
+    color: char
+}
+
 #[derive(Debug)]
 struct Board {
-    squares: Vec<Vec<Piece>>,
+    squares: Vec<Vec<Square>>,
     color_move: char,
     caslting_rights: String,
     half_moves: i8,
@@ -45,7 +56,18 @@ struct Board {
 
 impl Board {
     fn _new() -> Board  {
-        let result:Board = Board { squares: (vec![vec![Piece::Blank;8];8]), color_move: 'w', caslting_rights: String::from("KQkq"), half_moves: 0, full_moves: 0, fen: None } ;
+    // need to generate square information then put into the squares trait
+
+    let mut vector: Vec<Vec<Square>> = vec![];
+    for i in (1..9).rev() {
+        let mut holder: Vec<Square> = vec![];
+        for (index, j) in  ('A'..'I').enumerate(){
+            holder.push(Square {piece: Piece::Blank, x_coord: j, y_coord: i, color: {if i % 2 == (index % 2) as u8 {'w'} else {'b'}}});
+        }
+        vector.push(holder);
+    }
+
+        let result:Board = Board { squares: vector, color_move: 'w', caslting_rights: String::from("KQkq"), half_moves: 0, full_moves: 0, fen: None } ;
         result
     }
 
@@ -58,7 +80,16 @@ impl Board {
         self.full_moves = fen_split[5].parse().unwrap();
 
         let coordinates: Vec<&str> = fen_split[0].split("/").collect();
-        self.squares = vec![vec![Piece::Blank;8];8];
+
+        let mut vector: Vec<Vec<Square>> = vec![];
+        for i in (1..9).rev() {
+            let mut holder: Vec<Square> = vec![];
+            for (index, j) in  ('A'..'I').enumerate(){
+                holder.push(Square {piece: Piece::Blank, x_coord: j, y_coord: i, color: {if i % 2 == (index % 2) as u8 {'w'} else {'b'}}});
+            }
+            vector.push(holder);
+        }
+        self.squares = vector; 
 
         for i in 0..8{
             let row = i;
@@ -70,21 +101,21 @@ impl Board {
                 }
 
                 match j {
-                    'r' => self.squares[i][counter as usize] = Piece::RookBlack,
-                    'n' => self.squares[i][counter as usize] = Piece::KnightBlack,
-                    'b' => self.squares[i][counter as usize] = Piece::BishopBlack,
-                    'q' => self.squares[i][counter as usize] = Piece::QueenBlack,
-                    'k' => self.squares[i][counter as usize] = Piece::KingBlack,
-                    'p' => self.squares[i][counter as usize] = Piece::PawnBlack,
-                    'R' => self.squares[i][counter as usize] = Piece::RookWhite,
-                    'N' => self.squares[i][counter as usize] = Piece::KnightWhite,
-                    'B' => self.squares[i][counter as usize] = Piece::BishopWhite,
-                    'Q' => self.squares[i][counter as usize] = Piece::QueenWhite,
-                    'K' => self.squares[i][counter as usize] = Piece::KingWhite,
-                    'P' => self.squares[i][counter as usize] = Piece::PawnWhite,
+                    'r' => self.squares[i][counter as usize].piece = Piece::RookBlack,
+                    'n' => self.squares[i][counter as usize].piece = Piece::KnightBlack,
+                    'b' => self.squares[i][counter as usize].piece = Piece::BishopBlack,
+                    'q' => self.squares[i][counter as usize].piece = Piece::QueenBlack,
+                    'k' => self.squares[i][counter as usize].piece = Piece::KingBlack,
+                    'p' => self.squares[i][counter as usize].piece = Piece::PawnBlack,
+                    'R' => self.squares[i][counter as usize].piece = Piece::RookWhite,
+                    'N' => self.squares[i][counter as usize].piece = Piece::KnightWhite,
+                    'B' => self.squares[i][counter as usize].piece = Piece::BishopWhite,
+                    'Q' => self.squares[i][counter as usize].piece = Piece::QueenWhite,
+                    'K' => self.squares[i][counter as usize].piece = Piece::KingWhite,
+                    'P' => self.squares[i][counter as usize].piece = Piece::PawnWhite,
                     _ => {
                         for _ in 0..j.to_digit(10).unwrap() - 1{
-                            self.squares[i][counter as usize] = Piece::Blank;
+                            self.squares[i][counter as usize].piece = Piece::Blank;
                             counter += 1;
                         }
                     }
@@ -113,10 +144,14 @@ impl Board {
     }
 
     fn print_board(&self) {
+        let mut numbers = (1..9).rev().into_iter();
+
+
         for rows in self.squares.clone().into_iter(){
+            print!("{:?}",numbers.next().unwrap());
             for columns in rows {
                 print!("|");
-                match columns {
+                match columns.piece {
                     Piece::Blank => print!("_"),
                     Piece::RookWhite => print!("{}", char::from_u32(0x265C).unwrap()),
                     Piece::RookBlack => print!("{}", char::from_u32(0x2656).unwrap()),
@@ -136,7 +171,82 @@ impl Board {
             }
             println!("|");
         }
+        print!(" ");
+        for letter in 'A'..'I' {
+            print!(" {}", letter);
+        }
+        println!("");
     } 
+    
+    fn get_moves(&self)  -> Vec<String>{
+        let valid_pieces = match self.color_move {
+            'w' => vec![Piece::RookWhite, Piece::KingWhite, Piece::KnightWhite, Piece::QueenWhite, Piece::BishopWhite, Piece::PawnWhite],
+            'b' => vec![Piece::RookBlack, Piece::KingBlack, Piece::KnightBlack, Piece::QueenBlack, Piece::BishopBlack, Piece::PawnBlack],
+            _ => vec![Piece::Blank]
+        };
+
+        let mut result: Vec<String> = vec![];
+
+        for row in &self.squares {
+            for column in row {
+                if valid_pieces.contains(&column.piece) {
+
+                    let mut vector= ('A'..'I').into_iter();
+
+                    match column.piece {
+                        Piece::QueenBlack | Piece::QueenWhite => {
+                            let x_point = vector.position(|x| x == column.x_coord).unwrap();
+
+                            // up and down 
+                            let up_iter = (0..column.y_coord).rev();
+                            
+                            for i in up_iter {
+                                let mut result_string = String::new();
+                                if self.squares[i as usize][x_point].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+                                result_string.push(column.x_coord);
+                                result_string.push_str(&self.squares[i as usize][x_point].y_coord.to_string());
+
+                                result.push(result_string);
+                            }
+
+                            let down_iter = (column.y_coord + 1)..8;
+
+                            for i in down_iter {
+                                let mut result_string = String::new();
+                                if self.squares[i as usize][x_point].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+                                result_string.push(column.x_coord);
+                                result_string.push_str(&self.squares[i as usize][x_point].y_coord.to_string());
+
+                                result.push(result_string);
+                            }
+                            
+                            // left and right 
+                            let left_iter = (0..x_point).rev();
+
+
+                            let right_iter = (x_point + 1)..8;
+
+
+
+                            
+                            // diagonal
+                        },
+                        _ => {}
+
+                    }
+                    
+                }
+            }
+        };
+
+        //println!("{}",result.len());
+        result
+
+    }
 
 }
 
@@ -147,7 +257,7 @@ fn get_fen(board: &Board) -> String {
     let mut counter = 0;
     for row in &board.squares {
         for column in row {
-            match column {
+            match column.piece {
                 Piece::Blank => {
                     counter += 1;
                 },
