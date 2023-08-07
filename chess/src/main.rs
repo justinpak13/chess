@@ -1,11 +1,18 @@
 fn main() {
     let mut board = Board::starting_pos();
     
-    let test_fen = String::from("8/q4k2/8/4q3/2K5/8/8/4B3 w K - 0 1");
+    let test_fen = String::from("8/8/8/8/8/8/8/Q7 w - - 0 20");
 
     board.read_fen(test_fen);
     board.print_board();
-    board.print_fen();
+
+    get_legal_moves(board)
+}
+
+fn get_legal_moves(board: Board){
+    for i in board.squares {
+        println!("{:?}",i)
+    }
 }
 
 #[derive(Clone,Debug)]
@@ -31,13 +38,14 @@ struct Board {
     color_move: char,
     caslting_rights: String,
     half_moves: i8,
-    full_moves: i8
+    full_moves: i8,
+    fen: Option<String>
 
 }
 
 impl Board {
     fn _new() -> Board  {
-        let result:Board = Board { squares: (vec![vec![Piece::Blank;8];8]), color_move: 'w', caslting_rights: String::from("KQkq"), half_moves: 0, full_moves: 0 } ;
+        let result:Board = Board { squares: (vec![vec![Piece::Blank;8];8]), color_move: 'w', caslting_rights: String::from("KQkq"), half_moves: 0, full_moves: 0, fen: None } ;
         result
     }
 
@@ -89,6 +97,7 @@ impl Board {
 
         }
 
+        self.fen = Some(get_fen(self));
 
 
     }
@@ -98,6 +107,7 @@ impl Board {
         let mut result = Board::_new();
 
         result.read_fen(starting_fen);
+        result.fen = Some(get_fen(&result));
 
         result
     }
@@ -128,15 +138,153 @@ impl Board {
         }
     } 
 
-    fn print_fen(&self) {
-        for row in &self.squares {
-            println!("/");
-            for column in row {
-                println!("{:?}",column)
+}
+
+
+fn get_fen(board: &Board) -> String {
+    let mut result = String::new();
+    
+    let mut counter = 0;
+    for row in &board.squares {
+        for column in row {
+            match column {
+                Piece::Blank => {
+                    counter += 1;
+                },
+                Piece::RookWhite => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('R');
+                },
+                Piece::RookBlack => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('r')
+                },
+                Piece::KnightWhite => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('N')
+                },
+                Piece::KnightBlack => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('n')
+                },
+                Piece::QueenWhite => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('Q')
+                },
+                Piece::QueenBlack => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('q')
+                },
+                Piece::KingBlack => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('k')
+                },
+                Piece::KingWhite => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('K')
+                },
+                Piece::PawnBlack => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('p')
+                },
+                Piece::PawnWhite => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('P')
+                },
+                Piece::BishopWhite => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('B')
+                },
+                Piece::BishopBlack => {
+                    if counter > 0 {
+                        result.push_str(&counter.to_string());
+                        counter = 0;
+                    }
+                    result.push('b')
+                },
+                
             }
-        };
+        }
+        if counter > 0 {
+            result.push_str(&counter.to_string());
+            counter = 0;
+        }
+        result.push('/');
+    };
 
-        println!("{} {} - {} {}",&self.color_move, &self.caslting_rights, &self.half_moves, &self.full_moves)
+    result.pop();
+    result.push(' ');
+    result.push(board.color_move);
+    result.push(' ');
+    result.push_str(&board.caslting_rights);
+    result.push_str(" - ");
+    result.push_str(&board.half_moves.to_string());
+    result.push_str(" ");
+    result.push_str(&board.full_moves.to_string());
 
+    result
+
+}
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_fen_0() {
+        let test_board = Board::starting_pos();
+        assert_eq!(test_board.fen.unwrap(), String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+    }
+
+    #[test]
+    fn test_fen_1() {
+        let mut test_board = Board::starting_pos();
+        test_board.read_fen("rnb1kbnr/pp1qpp1p/8/1BpP2p1/8/2N2N2/PPPP1PPP/R1BQK2R b KQkq - 0 5".to_string());
+        assert_eq!(test_board.fen.unwrap(), String::from("rnb1kbnr/pp1qpp1p/8/1BpP2p1/8/2N2N2/PPPP1PPP/R1BQK2R b KQkq - 0 5"))
+    }
+
+    #[test]
+    fn test_fen_2() {
+        let mut test_board = Board::starting_pos();
+        test_board.read_fen("8/3k4/1b1p4/1P3Rp1/6P1/4p2r/P3p2P/3K4 w - - 0 37".to_string());
+        assert_eq!(test_board.fen.unwrap(), String::from("8/3k4/1b1p4/1P3Rp1/6P1/4p2r/P3p2P/3K4 w - - 0 37"))
+    }
+    #[test]
+    fn test_fen_3() {
+        let mut test_board = Board::starting_pos();
+        test_board.read_fen("1r4r1/3Q2k1/8/3Np1bB/1p2P1Pp/P4P1p/2P1n2P/1R5K b - - 4 36".to_string());
+        assert_eq!(test_board.fen.unwrap(), String::from("1r4r1/3Q2k1/8/3Np1bB/1p2P1Pp/P4P1p/2P1n2P/1R5K b - - 4 36"))
     }
 }
