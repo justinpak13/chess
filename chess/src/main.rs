@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::{cmp, vec};
 
 fn main() {
     let mut board = Board::starting_pos();
@@ -191,11 +191,11 @@ impl Board {
             for column in row {
                 if valid_pieces.contains(&column.piece) {
 
-                    let mut vector= ('A'..'I').into_iter();
+                    let vector: Vec<char> = ('A'..'I').collect();
 
                     match column.piece {
                         Piece::QueenBlack | Piece::QueenWhite => {
-                            let x_point = vector.position(|x| x == column.x_coord).unwrap();
+                            let x_point = vector.iter().position(|x| *x == column.x_coord).unwrap();
 
                             // up and down 
                             let up_iter = (0..column.y_coord).rev();
@@ -226,14 +226,126 @@ impl Board {
                             
                             // left and right 
                             let left_iter = (0..x_point).rev();
+                            
+                            for i in left_iter {
+                                let mut result_string = String::new();
+                                if self.squares[column.y_coord as usize][i as usize].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+                                result_string.push_str(&self.squares[column.y_coord as usize][i as usize].x_coord.to_string());
+                                result_string.push_str(&column.y_coord.to_string());
+
+                                result.push(result_string);
+                            }
+
 
 
                             let right_iter = (x_point + 1)..8;
+
+                            for i in right_iter {
+                                let mut result_string = String::new();
+                                if self.squares[column.y_coord as usize][i as usize].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+                                result_string.push_str(&self.squares[column.y_coord as usize][i as usize].x_coord.to_string());
+                                result_string.push_str(&column.y_coord.to_string());
+
+                                result.push(result_string);
+                            }
 
 
 
                             
                             // diagonal
+                            
+                            // up right 
+
+                            let up = 8 - column.y_coord;
+                            let right =  7 - vector.iter().position(|r| *r == column.x_coord).unwrap() as u8;
+                            let length = cmp::min(up , right);
+                            
+                            for i in 0..length {
+                                let mut result_string = String::new();
+
+                                if self.squares[right as usize + i as usize][(i + column.y_coord ) as usize].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+
+                                result_string.push(vector[right as usize + i as usize]);
+
+
+                                result_string.push_str(&(i + column.y_coord + 1).to_string());
+
+                                result.push(result_string)
+
+                            };
+
+                            
+
+                            // down right 
+
+                            let down = column.y_coord - 1;
+                            let right =  7 - vector.iter().position(|r| *r == column.x_coord).unwrap() as u8;
+                            let length = cmp::min(down , right);
+                            
+                            for i in 0..length {
+                                let mut result_string = String::new();
+
+                                if self.squares[right as usize + i as usize][(i + column.y_coord ) as usize].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+
+                                result_string.push(vector[right as usize + i as usize]);
+
+
+                                result_string.push_str(&(column.y_coord - i - 1).to_string());
+
+                                result.push(result_string)
+
+                            };
+                           
+                            // up left 
+                            let up = 8 - column.y_coord;
+                            let left =   vector.iter().position(|r| *r == column.x_coord).unwrap() as u8;
+                            let length = cmp::min(up , left);
+
+                            for i in 0..length {
+                                let mut result_string = String::new();
+
+                                if self.squares[right as usize + i as usize][(i + column.y_coord ) as usize].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+
+                                result_string.push(vector[left as usize - i as usize - 1]);
+
+
+                                result_string.push_str(&(column.y_coord + i + 1).to_string());
+
+                                result.push(result_string)
+
+                            };
+                            
+                            // down left
+                            let down = column.y_coord - 1;
+                            let left =   vector.iter().position(|r| *r == column.x_coord).unwrap() as u8;
+                            let length = cmp::min(down , right);
+                            
+                            result.push("down left".to_string());
+                            for i in 0..length {
+                                let mut result_string = String::new();
+
+                                if self.squares[left as usize + i as usize][(i + column.y_coord ) as usize].piece != Piece::Blank {
+                                    // need to add functionality for opponent and player pieces 
+                                };
+
+                                result_string.push(vector[left as usize - i as usize - 1 as usize]);
+
+
+                                result_string.push_str(&(column.y_coord - i - 1).to_string());
+
+                                result.push(result_string)
+
+                            };
                         },
                         _ => {}
 
